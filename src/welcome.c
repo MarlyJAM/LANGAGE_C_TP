@@ -1,10 +1,6 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <stdio.h>
-#include "search_bar.h"  // Inclusion du fichier de la barre de recherche
-
-#define WINDOW_WIDTH 480  // Largeur de la fenêtre
-#define WINDOW_HEIGHT 800 // Hauteur de la fenêtre
+#include "welcome.h"
+#include "search_bar.h" // Inclusion de la barre de recherche
+#include "render_text.h"  // Inclure la déclaration de render_text
 
 // Structure pour un bouton
 typedef struct {
@@ -27,33 +23,21 @@ void renderCenteredText(SDL_Renderer *renderer, TTF_Font *font, const char *text
     SDL_DestroyTexture(texture);
 }
 
-int main(int argc, char *argv[]) {
-    // Initialisation de SDL et SDL_ttf
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "Erreur SDL: %s\n", SDL_GetError());
-        return 1;
-    }
-    if (TTF_Init() == -1) {
-        fprintf(stderr, "Erreur SDL_ttf: %s\n", TTF_GetError());
-        SDL_Quit();
-        return 1;
-    }
 
-    // Création de la fenêtre et du renderer
-    SDL_Window *window = SDL_CreateWindow("My Dressing", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+void render_welcome(SDL_Renderer* renderer, TTF_Font* font, bool* running) {
+    SDL_Color black = { 0, 0, 0, 255 };
+    SDL_Color whiteColor = { 255, 255, 255, 255 }; // Couleur pour la barre de recherche
 
-    // Charger la police avec une taille plus petite
-    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", 16);
-    if (!font) {
-        fprintf(stderr, "Erreur chargement de la police: %s\n", TTF_GetError());
-        TTF_Quit();
-        SDL_Quit();
-        return 1;
-    }
+    // Effacer l'écran avec un fond blanc
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
 
-    // Couleur pour le texte de la barre de recherche
-    SDL_Color whiteColor = {255, 255, 255, 255};
+    // Dessiner la barre de recherche
+    renderSearchBar(renderer, font, 480 /* largeur de la fenêtre */, whiteColor);
+
+    // Afficher le texte de bienvenue
+    render_text(renderer, font, "Bienvenue Kassandre", 100, 100, black);
+    render_text(renderer, font, "Qu'est-ce que tu veux faire?", 55, 150, black);
 
     // Définition des boutons en forme de triangle (centrés pour largeur 480)
     Button buttons[] = {
@@ -62,46 +46,19 @@ int main(int argc, char *argv[]) {
         {{250, 450, 150, 150}, "TENUES"}      // Bouton en bas à droite
     };
 
-    // Boucle principale
-    int running = 1;
-    SDL_Event event;
-    while (running) {
-        // Gestion des événements
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = 0;
-            }
-        }
-
-        // Nettoyage de l'écran
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Fond blanc
-        SDL_RenderClear(renderer);
-
-        // Affichage de la barre de recherche
-        renderSearchBar(renderer, font, WINDOW_WIDTH, whiteColor);
-
-        // Affichage du texte de bienvenue
-        SDL_Color textColor = {0, 0, 0, 255};
-        renderCenteredText(renderer, font, "Bienvenue Kassandre", (SDL_Rect){0, 70, WINDOW_WIDTH, 30}, textColor);
-        renderCenteredText(renderer, font, "par quoi commence-t-on aujourd'hui ?", (SDL_Rect){0, 110, WINDOW_WIDTH, 30}, textColor);
-
-        // Affichage des boutons
-        SDL_SetRenderDrawColor(renderer, 128, 0, 128, 255); // Couleur violette pour les boutons
-        for (int i = 0; i < 3; i++) {
-            SDL_RenderFillRect(renderer, &buttons[i].rect); // Dessine le rectangle
-            renderCenteredText(renderer, font, buttons[i].label, buttons[i].rect, textColor); // Affiche le texte centré
-        }
-
-        // Mettre à jour l'affichage
-        SDL_RenderPresent(renderer);
+    // Affichage des boutons
+    SDL_SetRenderDrawColor(renderer, 128, 0, 128, 255); // Couleur violette pour les boutons
+    for (int i = 0; i < 3; i++) {
+        SDL_RenderFillRect(renderer, &buttons[i].rect); // Dessine le rectangle
+        renderCenteredText(renderer, font, buttons[i].label, buttons[i].rect, whiteColor); // Affiche le texte centré
     }
 
-    // Libération des ressources
-    TTF_CloseFont(font);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    TTF_Quit();
-    SDL_Quit();
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            *running = false;
+        }
+    }
 
-    return 0;
+    SDL_RenderPresent(renderer);
 }
