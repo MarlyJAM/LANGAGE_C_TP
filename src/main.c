@@ -41,6 +41,7 @@ int main(int argc, char* argv[]) {
 
     // Chargement de la police
     TTF_Font* font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", 24);
+    
     if (font == NULL) {
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
@@ -64,6 +65,7 @@ int main(int argc, char* argv[]) {
         } else if (currentState == STATE_WELCOME) {
             render_welcome(renderer, font, &running);
         }
+        
     }
 
     // Libérer les ressources
