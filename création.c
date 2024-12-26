@@ -1,122 +1,117 @@
+#include "création.h"
+#include "ajouter_vêtement.h"
+#include "render_text.h"
+#include "nav.h"  
+#include "graphics.h"
+#include "barre_nav.h"
+#include "search_bar.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "création.h"
 
 
-int main(int argc, char *argv[]) {
-    // Initialiser SDL2 (vidéo et gestion des événements)
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
-        fprintf(stderr, "Erreur initialisation SDL: %s\n", SDL_GetError());
-        return 1;
+// Couleur des boutons
+SDL_Color buttonColor = {200, 200, 200, 255};  // Gris clair
+
+// Fonction pour dessiner un bouton
+void render_button_c(SDL_Renderer *renderer, TTF_Font *font, Button_c *button) {
+    // Dessiner le rectangle arrondi
+    SDL_SetRenderDrawColor(renderer, button->color.r, button->color.g, button->color.b, 255);
+    draw_rounded_rect(renderer, button->rect, 10); // Rayon des coins arrondis = 10
+
+    // Dessiner le texte au centre du bouton
+    SDL_Color textColor = {0, 0, 0, 255};  // Couleur noire pour le texte
+    SDL_Surface *textSurface = TTF_RenderText_Solid(font, button->text, textColor);
+    if (!textSurface) {
+        printf("Erreur lors du rendu du texte : %s\n", TTF_GetError());
+        return;
+    }
+    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    if (!textTexture) {
+        printf("Erreur lors de la création de la texture : %s\n", SDL_GetError());
+        SDL_FreeSurface(textSurface);
+        return;
     }
 
-    // Initialiser SDL_ttf pour gérer les polices
-    if (TTF_Init() != 0) {
-        fprintf(stderr, "Erreur initialisation TTF: %s\n", TTF_GetError());
-        SDL_Quit();
-        return 1;
-    }
+    int textWidth = 0, textHeight = 0;
+    TTF_SizeText(font, button->text, &textWidth, &textHeight);
 
-    // Créer une fenêtre de taille fixe
-    SDL_Window *window = SDL_CreateWindow(
-        "Fenêtre avec boutons",                // Titre de la fenêtre
-        SDL_WINDOWPOS_CENTERED,                // Position X (centrée)
-        SDL_WINDOWPOS_CENTERED,                // Position Y (centrée)
-        480,                          // Largeur de la fenêtre
-        800,                         // Hauteur de la fenêtre
-        SDL_WINDOW_SHOWN                       // La fenêtre est visible
-    );
-    if (!window) {
-        fprintf(stderr, "Erreur création fenêtre: %s\n", SDL_GetError());
-        TTF_Quit();
-        SDL_Quit();
-        return 1;
-    }
-
-    // Créer un rendu pour dessiner dans la fenêtre
-    SDL_Renderer *renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
-    if (!renderer) {
-        fprintf(stderr, "Erreur création renderer: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        TTF_Quit();
-        SDL_Quit();
-        return 1;
-    }
-
-    // Charger une police avec une taille de 36 points
-    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf", 24);
-    if (!font) {
-        fprintf(stderr, "Erreur chargement police: %s\n", TTF_GetError());
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        TTF_Quit();
-        SDL_Quit();
-        return 1;
-    }
-
-    // Couleur des boutons
-    SDL_Color buttonColor = {200, 200, 200, 255}; // Gris clair
-
-    // Initialiser le premier bouton
-    Button button1 = {
-        .rect = {480/ 2 - BUTTON_WIDTH / 2, 200, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .color = buttonColor,
-        .text = "Ajouter un vêtement"
+    SDL_Rect textRect = {
+        button->rect.x + (button->rect.w - textWidth) / 2,
+        button->rect.y + (button->rect.h - textHeight) / 2,
+        textWidth,
+        textHeight
     };
 
-    // Initialiser le deuxième bouton
-    Button button2 = {
-        .rect = {480/ 2 - BUTTON_WIDTH / 2, 200 + BUTTON_HEIGHT + BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .color = buttonColor,
-        .text = "Création de tenue"
+    // Copier la texture du texte sur le renderer
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+    // Libérer les ressources
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+}
+
+// Fonction principale pour afficher la page de création
+void render_creation(SDL_Renderer *renderer, TTF_Font *font, bool *running, int window_width) {
+    SDL_Color white = {255, 255, 255, 255};
+    SDL_Color buttonColor1 = {70, 130, 180, 255}; // Bleu acier
+    SDL_Color buttonColor2 = {46, 139, 87, 255}; // Vert forêt
+
+   Button_c button_add_clothes = {
+    .rect = {window_width / 2 - BUTTON_WIDTH / 2, 300, BUTTON_WIDTH, BUTTON_HEIGHT},
+    .color = buttonColor1,
+    .text = "Ajouter un vetement"
     };
 
-    // Boucle principale
-    bool running = true;      // Flag pour maintenir le programme actif
-    SDL_Event event;          // Variable pour gérer les événements
+    Button_c button_generate_outfit = {
+        .rect = {window_width / 2 - BUTTON_WIDTH / 2, 400, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .color = buttonColor2,
+        .text = "Creer une tenue"
+    };
 
-    while (running) {
-        // Récupérer les événements
+
+    SDL_Event event;
+    bool in_creation = true;
+
+    // Boucle d'affichage de la page de création
+    while (in_creation && *running) {
+        // Gestion des événements
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {  // Quitter si la fenêtre est fermée
-                running = false;
+            if (event.type == SDL_QUIT) {
+                *running = false;
+                in_creation = false;
             }
 
-            // Gestion des clics de souris
             if (event.type == SDL_MOUSEBUTTONDOWN) {
-                int x = event.button.x;  // Position X du clic
-                int y = event.button.y;  // Position Y du clic
+                int x = event.button.x;
+                int y = event.button.y;
 
-                if (is_point_in_rect(x, y, &button1.rect)) {
+                // Gestion du clic sur "Ajouter un vêtement"
+                if (is_point_in_rect(x, y, &button_add_clothes.rect)) {
                     printf("Bouton 'Ajouter un vêtement' cliqué !\n");
-                } else if (is_point_in_rect(x, y, &button2.rect)) {
-                    printf("Bouton 'Création de tenue' cliqué !\n");
+                    ajouter_vetement();  // Appel à la fonction pour ajouter un vêtement
+                }
+                // Gestion du clic sur "Créer une tenue"
+                else if (is_point_in_rect(x, y, &button_generate_outfit.rect)) {
+                    printf("Bouton 'Créer une tenue' cliqué !\n");
+                    // Appel à la fonction pour créer une tenue
                 }
             }
         }
 
-        // Effacer l'écran et dessiner un fond blanc
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Couleur blanche
+        // Effacer l'écran avec un fond blanc
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
+        renderSearchBar(renderer, font, window_width, white );
+        // Dessiner la barre de navigation
+        render_navigation(renderer, font, window_width);
 
         // Dessiner les boutons
-        render_button(renderer, font, &button1);
-        render_button(renderer, font, &button2);
+        render_button_c(renderer, font, &button_add_clothes);
+        render_button_c(renderer, font, &button_generate_outfit);
 
-        // Afficher le rendu
+        // Mettre à jour l'affichage
         SDL_RenderPresent(renderer);
     }
-
-    // Libérer les ressources
-    TTF_CloseFont(font);          // Fermer la police
-    SDL_DestroyRenderer(renderer); // Détruire le rendu
-    SDL_DestroyWindow(window);    // Détruire la fenêtre
-    TTF_Quit();                   // Quitter SDL_ttf
-    SDL_Quit();                   // Quitter SDL
-
-    return 0;
 }
