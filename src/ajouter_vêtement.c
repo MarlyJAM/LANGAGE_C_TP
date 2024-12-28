@@ -1,39 +1,15 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "search_bar.h"
 #include "ajouter_vêtement.h"
+#include "tinyfiledialogs.h"
 
-/* Fonction main pour démarrer l'application
-int main(int argc, char *argv[]) {
-    // Initialiser SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "Erreur d'initialisation de SDL: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    // Ouvrir la fenêtre secondaire
-    ouvrir_fenetre_secondaire();
-
-    return 0;
-}*/
-
-#define WINDOW_WIDTH 1280  // Largeur de la fenêtre
-#define WINDOW_HEIGHT 720  // Hauteur de la fenêtre
-#define FIELD_WIDTH 600    // Largeur des champs
-#define FIELD_HEIGHT 50    // Hauteur des champs
-#define FIELD_MARGIN 20    // Espace entre les champs
-#define BUTTON_WIDTH 200   // Largeur du bouton
-#define BUTTON_HEIGHT 50   // Hauteur du bouton
-
-
-// Fonction pour dessiner un champ d'entrée avec son titre et son contenu
+// Fonction pour afficher un champ d'entrée avec son titre et son contenu
 void render_field(SDL_Renderer *renderer, TTF_Font *font, InputField *field) {
-    // Dessiner le champ
-    SDL_SetRenderDrawColor(renderer, field->color.r, field->color.g, field->color.b, 255);
-    SDL_RenderFillRect(renderer, &field->rect);
-
     // Dessiner le titre du champ
     SDL_Color textColor = {0, 0, 0, 255}; // Noir
     SDL_Surface *titleSurface = TTF_RenderText_Solid(font, field->title, textColor);
@@ -53,6 +29,10 @@ void render_field(SDL_Renderer *renderer, TTF_Font *font, InputField *field) {
     SDL_FreeSurface(titleSurface);
     SDL_DestroyTexture(titleTexture);
 
+    // Dessiner le champ
+    SDL_SetRenderDrawColor(renderer, field->color.r, field->color.g, field->color.b, 255);
+    SDL_RenderFillRect(renderer, &field->rect);
+
     // Dessiner le contenu du champ (texte saisi)
     if (field->input[0] != '\0') { // Si le champ contient du texte
         SDL_Surface *inputSurface = TTF_RenderText_Solid(font, field->input, textColor);
@@ -71,7 +51,7 @@ void render_field(SDL_Renderer *renderer, TTF_Font *font, InputField *field) {
     }
 }
 
-// Fonction pour dessiner un bouton
+// Fonction pour afficher un bouton
 void render_button(SDL_Renderer *renderer, TTF_Font *font, const char *label, SDL_Rect *buttonRect) {
     // Dessiner le bouton
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Vert
@@ -97,13 +77,63 @@ void render_button(SDL_Renderer *renderer, TTF_Font *font, const char *label, SD
     SDL_DestroyTexture(textTexture);
 }
 
-// Fonction principale pour afficher et gérer la fenêtre secondaire
+// Fonction pour importer une image
+SDL_Texture* import_image(SDL_Renderer *renderer, const char *file_path) {
+    SDL_Surface *imageSurface = IMG_Load(file_path);
+    if (!imageSurface) {
+        fprintf(stderr, "Erreur chargement image : %s\n", IMG_GetError());
+        return NULL;
+    }
+
+    SDL_Texture *imageTexture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+    SDL_FreeSurface(imageSurface);
+
+    return imageTexture;
+}
+
+// Fonction pour dessiner un champ spécifique pour l'image
+void render_image_field(SDL_Renderer *renderer, TTF_Font *font, SDL_Rect *rect, SDL_Texture *imageTexture) {
+    // Dessiner le cadre en violet foncé
+    SDL_SetRenderDrawColor(renderer, 75, 0, 130, 255); // Violet foncé
+    SDL_RenderFillRect(renderer, rect);
+
+    if (imageTexture) {
+        // Si une image est disponible, afficher une miniature
+        SDL_Rect imageRect = {
+            rect->x + 10, rect->y + 5,
+            rect->w - 20, rect->h - 10
+        };
+        SDL_RenderCopy(renderer, imageTexture, NULL, &imageRect);
+    } else {
+        // Si aucune image, afficher le texte "Importer une image" en blanc
+        SDL_Color textColor = {255, 255, 255, 255}; // Blanc
+        SDL_Surface *textSurface = TTF_RenderText_Solid(font, "Importer une image", textColor);
+        SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+        int textWidth, textHeight;
+        TTF_SizeText(font, "Importer une image", &textWidth, &textHeight);
+
+        SDL_Rect textRect = {
+            rect->x + (rect->w - textWidth) / 2,
+            rect->y + (rect->h - textHeight) / 2,
+            textWidth,
+            textHeight
+        };
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+    }
+}
+
+
 void ajouter_vetement() {
+    SDL_Color white = {255,255,255,255};
     SDL_Window *fenetre = SDL_CreateWindow(
         "Ajouter un vêtement",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        WINDOW_WIDTH,
+        WINDOW_WTH,
         WINDOW_HEIGHT,
         SDL_WINDOW_SHOWN
     );
@@ -120,49 +150,59 @@ void ajouter_vetement() {
         return;
     }
 
-    if (TTF_Init() != 0) {
-        fprintf(stderr, "Erreur initialisation TTF : %s\n", TTF_GetError());
+    if (TTF_Init() != 0 || IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
+        fprintf(stderr, "Erreur initialisation des bibliothèques : %s\n", TTF_GetError());
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(fenetre);
         return;
     }
 
-    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", 24);
+    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", 18);
     if (!font) {
         fprintf(stderr, "Erreur chargement police : %s\n", TTF_GetError());
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(fenetre);
         TTF_Quit();
+        IMG_Quit();
         return;
     }
 
-    // Définition des champs d'entrée
-    InputField fields[7];  // Mise à jour pour inclure un champ supplémentaire
-    const char *titles[] = {"Nom", "Categorie", "Température", "Motif", "Type", "Couleur", "Saison"};
-    SDL_Color defaultColor = {255, 0, 0, 255}; // Rouge par défaut
-    SDL_Color activeColor = {0, 255, 0, 255};  // Vert si actif
+    InputField fields[7];
+    const char *titles[] = {"Nom", "Categorie", "Temperature", "Motif", "Type", "Couleur", "Saison"};
+    SDL_Color defaultColor = {255, 0, 0, 255};
+    SDL_Color activeColor = {0, 255, 0, 255};
 
-    for (int i = 0; i < 7; i++) {  // Mise à jour de la boucle pour 7 champs
-        fields[i].rect.x = (WINDOW_WIDTH - FIELD_WIDTH) / 2;
+    for (int i = 0; i < 7; i++) {
+        fields[i].rect.x = (WINDOW_WTH - FIELD_WIDTH) / 2;
         fields[i].rect.y = 100 + i * (FIELD_HEIGHT + FIELD_MARGIN);
         fields[i].rect.w = FIELD_WIDTH;
         fields[i].rect.h = FIELD_HEIGHT;
         fields[i].color = defaultColor;
         fields[i].title = titles[i];
         fields[i].active = false;
-        fields[i].input[0] = '\0';  // Champ vide au départ
+        fields[i].input[0] = '\0';
     }
+    // Définition du champ "Importer une image"
+    SDL_Rect imageRect = {
+        (WINDOW_WTH - FIELD_WIDTH) / 2,
+        100 + 7 * (FIELD_HEIGHT + FIELD_MARGIN),
+        FIELD_WIDTH,
+        FIELD_HEIGHT
+    };
 
-    // Définir le bouton "Valider"
-    SDL_Rect buttonRect = { (WINDOW_WIDTH - BUTTON_WIDTH) / 2, WINDOW_HEIGHT - BUTTON_HEIGHT - 50, BUTTON_WIDTH, BUTTON_HEIGHT };
+    // Définition du bouton "Valider" avec un espace ajouté
+    SDL_Rect buttonRect = {
+        (WINDOW_WTH - BUTTON_WTH ) / 2,
+        100 + 8 * (FIELD_HEIGHT + FIELD_MARGIN) + 20, // 20px d'espace supplémentaire
+        BUTTON_WTH ,
+        BUTTON_HEIGHT
+    };
 
-    // Initialisation du clavier virtuel
-    SDL_StartTextInput(); // Active la saisie de texte
+    SDL_Texture *imageTexture = NULL;
+    
+    SDL_StartTextInput();
 
-    // Structure pour stocker le vêtement
     Vetement newVetement;
-
-    // Boucle principale
     bool running = true;
     SDL_Event event;
 
@@ -172,13 +212,11 @@ void ajouter_vetement() {
                 running = false;
             }
 
-            // Gestion des clics ou tapotements
             if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_FINGERDOWN) {
-                int x = event.type == SDL_MOUSEBUTTONDOWN ? event.button.x : (int)(event.tfinger.x * WINDOW_WIDTH);
+                int x = event.type == SDL_MOUSEBUTTONDOWN ? event.button.x : (int)(event.tfinger.x * WINDOW_WTH);
                 int y = event.type == SDL_MOUSEBUTTONDOWN ? event.button.y : (int)(event.tfinger.y * WINDOW_HEIGHT);
 
-                // Vérification du clic sur les champs
-                for (int i = 0; i < 7; i++) {  // Mise à jour pour 7 champs
+                for (int i = 0; i < 7; i++) {
                     if (x >= fields[i].rect.x && x <= fields[i].rect.x + fields[i].rect.w &&
                         y >= fields[i].rect.y && y <= fields[i].rect.y + fields[i].rect.h) {
                         fields[i].active = true;
@@ -189,10 +227,26 @@ void ajouter_vetement() {
                     }
                 }
 
-                // Vérification du clic sur le bouton "Valider"
+                if (x >= imageRect.x && x <= imageRect.x + imageRect.w &&
+                    y >= imageRect.y && y <= imageRect.y + imageRect.h) {
+                    // Ouvrir une boîte de dialogue pour sélectionner une image
+                    const char *filePath = tinyfd_openFileDialog(
+                        "Choisissez une image", "", 0, NULL, NULL, 0
+                    );
+
+                    if (filePath) {
+                        SDL_Texture *newTexture = import_image(renderer, filePath);
+                        if (newTexture) {
+                            SDL_DestroyTexture(imageTexture);
+                            imageTexture = newTexture;
+                        } else {
+                            fprintf(stderr, "Erreur lors de l'importation de l'image : %s\n", IMG_GetError());
+                        }
+                    }
+                }
+
                 if (x >= buttonRect.x && x <= buttonRect.x + buttonRect.w &&
                     y >= buttonRect.y && y <= buttonRect.y + buttonRect.h) {
-                    // Sauvegarder les valeurs dans la structure Vetement
                     strcpy(newVetement.nom, fields[0].input);
                     strcpy(newVetement.categorie, fields[1].input);
                     strcpy(newVetement.temperature, fields[2].input);
@@ -201,10 +255,9 @@ void ajouter_vetement() {
                     strcpy(newVetement.couleur, fields[5].input);
                     strcpy(newVetement.saison, fields[6].input);
 
-                    // Afficher les informations sauvegardées (pour tester)
                     printf("Nom: %s\n", newVetement.nom);
                     printf("Categorie: %s\n", newVetement.categorie);
-                    printf("Température: %s\n", newVetement.temperature);
+                    printf("Temperature: %s\n", newVetement.temperature);
                     printf("Motif: %s\n", newVetement.motif);
                     printf("Type: %s\n", newVetement.type);
                     printf("Couleur: %s\n", newVetement.couleur);
@@ -212,7 +265,6 @@ void ajouter_vetement() {
                 }
             }
 
-            // Gestion de la saisie de texte dans les champs actifs
             if (event.type == SDL_TEXTINPUT) {
                 for (int i = 0; i < 7; i++) {
                     if (fields[i].active) {
@@ -221,7 +273,6 @@ void ajouter_vetement() {
                 }
             }
 
-            // Gestion de la suppression de texte
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_BACKSPACE) {
                 for (int i = 0; i < 7; i++) {
                     if (fields[i].active && strlen(fields[i].input) > 0) {
@@ -231,24 +282,28 @@ void ajouter_vetement() {
             }
         }
 
-        // Effacer l'écran
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // Blanc
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
-        // Dessiner les champs et le bouton
         for (int i = 0; i < 7; i++) {
             render_field(renderer, font, &fields[i]);
         }
+        // Dessiner la barre de recherche
+        renderSearchBar(renderer, font, WINDOW_WTH, white);
+        render_image_field(renderer, font, &imageRect, imageTexture);
         render_button(renderer, font, "Valider", &buttonRect);
 
-        // Mettre à jour l'affichage
         SDL_RenderPresent(renderer);
     }
 
-    // Libérer les ressources
+    if (imageTexture) {
+        SDL_DestroyTexture(imageTexture);
+    }
+
     TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(fenetre);
     TTF_Quit();
+    IMG_Quit();
     SDL_Quit();
 }

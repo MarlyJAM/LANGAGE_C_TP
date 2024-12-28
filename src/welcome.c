@@ -1,8 +1,12 @@
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <stdbool.h>
+#include "barre_nav.h"
 #include "welcome.h"
 #include "search_bar.h" // Inclusion de la barre de recherche
 #include "render_text.h"  // Inclure la déclaration de render_text
 #include "calendar.h"
-#include "création.h"
+#include "création.h" // Assurez-vous que "creation.h" est inclus correctement
 
 // Structure pour un bouton
 typedef struct {
@@ -25,7 +29,8 @@ void renderCenteredText(SDL_Renderer *renderer, TTF_Font *font, const char *text
     SDL_DestroyTexture(texture);
 }
 
-void render_welcome(SDL_Renderer* renderer, TTF_Font* font, bool* running) {
+// Fonction principale pour afficher l'écran de bienvenue
+void render_welcome(SDL_Renderer* renderer, TTF_Font* font, bool* running, int window_width, int window_height, AppState* currentState) {
     SDL_Color black = {0, 0, 0, 255};
     SDL_Color whiteColor = {255, 255, 255, 255}; // Couleur pour la barre de recherche
 
@@ -34,17 +39,20 @@ void render_welcome(SDL_Renderer* renderer, TTF_Font* font, bool* running) {
     SDL_RenderClear(renderer);
 
     // Dessiner la barre de recherche
-    renderSearchBar(renderer, font, 480 /* largeur de la fenêtre */, whiteColor);
+    renderSearchBar(renderer, font, window_width, whiteColor);
 
     // Afficher le texte de bienvenue
     render_text(renderer, font, "Bienvenue Kassandre", 100, 100, black);
     render_text(renderer, font, "Qu'est-ce que tu veux faire?", 55, 150, black);
 
     // Définition des boutons
+    int button_width = 150;
+    int button_height = 150;
+
     Button buttons[] = {
-        {{165, 250, 150, 150}, "CALENDRIER"}, // Bouton en haut (centre)
-        {{80, 450, 150, 150}, "CREATION"},    // Bouton en bas à gauche
-        {{250, 450, 150, 150}, "TENUES"}      // Bouton en bas à droite
+        {{(window_width - button_width) / 2, 250, button_width, button_height}, "CALENDRIER"}, // Bouton au centre
+        {{(window_width / 2) - button_width - 50, 450, button_width, button_height}, "CREATION"}, // Bouton à gauche
+        {{(window_width / 2) + 50, 450, button_width, button_height}, "TENUES"} // Bouton à droite
     };
 
     // Affichage des boutons
@@ -63,20 +71,21 @@ void render_welcome(SDL_Renderer* renderer, TTF_Font* font, bool* running) {
             int x = event.button.x;
             int y = event.button.y;
 
-            // Vérifiez si le clic est dans le rectangle du bouton CALENDRIER
+            // Vérifiez si le clic est dans le rectangle des boutons
             if (x >= buttons[0].rect.x && x <= buttons[0].rect.x + buttons[0].rect.w &&
                 y >= buttons[0].rect.y && y <= buttons[0].rect.y + buttons[0].rect.h) {
-                // Afficher la page calendrier
-                render_calendar(renderer, font, running);
-            }
-             // Vérifiez si le clic est dans le rectangle du bouton CREATION
-            if (x >= buttons[1].rect.x && x <= buttons[1].rect.x + buttons[1].rect.w &&
-                y >= buttons[1].rect.y && y <= buttons[1].rect.y + buttons[1].rect.h) {
-                // Afficher la page calendrier
-                render_creation(renderer, font, running);
+                // Appel de render_calendar avec les paramètres appropriés
+                *currentState = STATE_CALENDAR;
+            } else if (x >= buttons[1].rect.x && x <= buttons[1].rect.x + buttons[1].rect.w &&
+                       y >= buttons[1].rect.y && y <= buttons[1].rect.y + buttons[1].rect.h) {
+                // Appel de render_creation
+                *currentState = STATE_CREATION;
+            } else if (x >= buttons[2].rect.x && x <= buttons[2].rect.x + buttons[2].rect.w &&
+                       y >= buttons[2].rect.y && y <= buttons[2].rect.y + buttons[2].rect.h) {
+                // Appel de render_tenues
+                *currentState = STATE_TENUES;
             }
         }
-
     }
 
     SDL_RenderPresent(renderer);

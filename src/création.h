@@ -9,10 +9,11 @@
 #define CREATION_H
 
 #define WINDOW_WIDTH 480      // Largeur de la fenêtre
-#define WINDOW_HEIGHT 800     // Hauteur de la fenêtre
-#define BUTTON_WIDTH 200      // Largeur des boutons
-#define BUTTON_HEIGHT 60      // Hauteur des boutons
+#define WINDOW_HEIGHT 800     // Hauteur de la fenêtre    
 #define BUTTON_MARGIN 40      // Marge entre les boutons
+// Définition des constantes pour les dimensions des boutons
+#define BUTTON_WIDTH 300
+#define BUTTON_HEIGHT 50
 
 
 typedef struct {
@@ -21,9 +22,8 @@ typedef struct {
     const char *text;
 } Button_c;
 
-void render_creation(SDL_Renderer *renderer, TTF_Font *font, bool *running);
-bool is_point_in_rect(int x, int y, SDL_Rect *rect) ;
+void render_creation(SDL_Renderer *renderer, TTF_Font *font, bool *running, int window_width);
 
-void render_button_c(SDL_Renderer *renderer, TTF_Font *font, Button_c *button); 
+void render_button_c(SDL_Renderer *renderer, TTF_Font *font, Button_c *button);
 
 #endif // CREATION_H
