@@ -4,13 +4,13 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include "accessoire.h"
 
 #ifndef CALENDAR_H
 #define CALENDAR_H
 
 // Nombre de jours dans un mois (30 pour simplification)
 #define DAYS_IN_MONTH 31
-#define MAX_LEN 100
 #define MAX_TENUES_PER_DAY 10
 
 // Structure pour gérer les tenues par jour

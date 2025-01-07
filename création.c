@@ -1,6 +1,7 @@
 #include "création.h"
 #include "ajouter_vêtement.h"
 #include "render_text.h"
+#include "créatenue.h"
 #include "nav.h"  
 #include "graphics.h"
 #include "barre_nav.h"
@@ -96,6 +97,8 @@ void render_creation(SDL_Renderer *renderer, TTF_Font *font, bool *running, int 
                 else if (is_point_in_rect(x, y, &button_generate_outfit.rect)) {
                     printf("Bouton 'Créer une tenue' cliqué !\n");
                     // Appel à la fonction pour créer une tenue
+                    render_createnue();
+                    
                 }
             }
         }

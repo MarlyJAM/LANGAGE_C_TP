@@ -10,7 +10,6 @@
 #include "search_bar.h"
 
 #define DAYS_IN_MONTH 31
-#define MAX_LEN 100
 #define MAX_TENUES_PER_DAY 10
 
 // Tableau des jours et tenues
@@ -29,13 +28,26 @@ const char* get_current_month(int *year) {
 
 // Fonction pour générer une tenue aléatoire
 void generer_tenue(char *tenue) {
-    const char *hauts[] = {"T-shirt noir", "T-shirt blanc", "Pull", "Chemise"};
-    const char *pantalons[] = {"Jean", "Pantalon noir", "Jupe", "Short"};
-    const char *chaussures[] = {"Baskets blanches", "Chaussures noires", "Sandales", "Bottes"};
+    // Choix aléatoire des éléments de la tenue
+    const char *haut = hauts[rand() % 4];
+    const char *pantalon = pantalons[rand() % 4];
+    const char *chaussure = chaussures[rand() % 4];
 
-    snprintf(tenue, MAX_LEN, "%s, %s, %s",
-             hauts[rand() % 4], pantalons[rand() % 4], chaussures[rand() % 4]);
+    // Calculer la longueur totale des chaînes
+    size_t total_length = strlen(haut) + strlen(pantalon) + strlen(chaussure) + 2; // +2 pour les virgules et espaces
+
+    // Vérifier si la taille totale dépasse la capacité de 'tenue'
+    if (total_length < MAX_LEN) {
+        snprintf(tenue, MAX_LEN, "%s, %s, %s", haut, pantalon, chaussure);
+    } else {
+        // Si la chaîne est trop longue, tronquer chaque élément individuellement
+        snprintf(tenue, MAX_LEN, "%s, %s, %s", 
+                 (strlen(haut) < MAX_LEN / 3 ? haut : "Trop long"), 
+                 (strlen(pantalon) < MAX_LEN / 3 ? pantalon : "Trop long"), 
+                 (strlen(chaussure) < MAX_LEN / 3 ? chaussure : "Trop long"));
+    }
 }
+
 
 // Fonction de rendu du calendrier
 void render_calendar(SDL_Renderer *renderer, TTF_Font *font, bool *running, int window_width, int window_height, AppState *currentState) {

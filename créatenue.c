@@ -3,44 +3,10 @@
 #include <SDL2/SDL_image.h>  // Pour charger les images
 #include <stdio.h>
 #include <stdlib.h>
+#include "créatenue.h"
 #include <time.h>
 #include <string.h>
 
-#define WINDOW_WIDTH 480
-#define WINDOW_HEIGHT 800
-
-#define BUTTON_WIDTH 200
-#define BUTTON_HEIGHT 50
-
-#define MAX_VETEMENTS 50
-#define MAX_LEN 100
-#define MAX_TENUES 100
-
-// Structures
-typedef struct {
-    char haut[MAX_LEN];
-    char pantalon[MAX_LEN];
-    char chaussure[MAX_LEN];
-    SDL_Texture *haut_icon;
-    SDL_Texture *pantalon_icon;
-    SDL_Texture *chaussure_icon;
-} Tenue;
-
-// Variables globales
-char hauts[MAX_VETEMENTS][MAX_LEN] = {"T-shirt noir", "T-shirt blanc", "Pull", "Chemise"};
-char pantalons[MAX_VETEMENTS][MAX_LEN] = {"Jean", "Pantalon noir", "Jupe", "Short"};
-char chaussures[MAX_VETEMENTS][MAX_LEN] = {"Baskets blanches", "Chaussures noires", "Sandales", "Bottes"};
-
-int num_hauts = 4, num_pantalons = 4, num_chaussures = 4;
-Tenue tenue_affichee; // La tenue actuellement affichée
-Tenue tenues_sauvegardees[MAX_TENUES];
-int nombre_tenues_sauvegardees = 0;
-
-// Prototypes
-void afficher_tenue(SDL_Renderer *renderer, TTF_Font *font, Tenue *tenue);
-void generer_tenue(Tenue *tenue);
-void sauvegarder_tenues_csv(const char *nom_fichier);
-SDL_Texture* charger_image(const char *chemin_image, SDL_Renderer *renderer);
 
 // Initialisation SDL
 int init(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font) {
@@ -72,7 +38,7 @@ int init(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font) {
         return 0;
     }
 
-    *font = TTF_OpenFont("arial.ttf", 24);
+    *font = TTF_OpenFont("/usr/share/fonts/truetype/msttcorefonts/Georgia_Bold_Italic.ttf", 24);
     if (!*font) {
         printf("Erreur chargement police : %s\n", TTF_GetError());
         SDL_DestroyRenderer(*renderer);
@@ -85,13 +51,33 @@ int init(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font) {
 
 // Fonction pour afficher un texte
 void afficher_texte(SDL_Renderer *renderer, TTF_Font *font, const char *texte, int x, int y, SDL_Color couleur) {
+    // Vérifier si le texte est valide
+    if (texte == NULL || strlen(texte) == 0) {
+        return; // Ne rien faire si le texte est vide ou nul
+    }
+
     SDL_Surface *surface = TTF_RenderText_Blended(font, texte, couleur);
+    if (!surface) {
+        fprintf(stderr, "Erreur lors de la création de la surface pour le texte : %s\n", TTF_GetError());
+        return;
+    }
+
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!texture) {
+        fprintf(stderr, "Erreur lors de la création de la texture : %s\n", SDL_GetError());
+        SDL_FreeSurface(surface);
+        return;
+    }
+
     SDL_Rect dst = {x, y, surface->w, surface->h};
     SDL_RenderCopy(renderer, texture, NULL, &dst);
+
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 }
+
+
+
 
 // Fonction pour afficher une tenue avec icônes
 void afficher_tenue(SDL_Renderer *renderer, TTF_Font *font, Tenue *tenue) {
@@ -115,7 +101,7 @@ void afficher_tenue(SDL_Renderer *renderer, TTF_Font *font, Tenue *tenue) {
 }
 
 // Fonction principale
-int main() {
+int render_createnue() {
     srand(time(NULL));
 
     SDL_Window *window = NULL;
@@ -139,7 +125,7 @@ int main() {
     tenue_affichee.chaussure_icon = charger_image("icon_basket.png", renderer);
 
     // Initialiser la première tenue affichée
-    generer_tenue(&tenue_affichee);
+    generate_tenue(&tenue_affichee);
 
     while (!quit) {
         while (SDL_PollEvent(&e)) {
@@ -152,7 +138,7 @@ int main() {
                 // Gestion du clic sur le bouton "Générer"
                 if (x >= bouton_generer.x && x <= bouton_generer.x + BUTTON_WIDTH &&
                     y >= bouton_generer.y && y <= bouton_generer.y + BUTTON_HEIGHT) {
-                    generer_tenue(&tenue_affichee);
+                    generate_tenue(&tenue_affichee);
                 }
 
                 // Gestion du clic sur le bouton "Sauvegarder"
@@ -179,7 +165,7 @@ int main() {
 
         // Afficher le texte des boutons
         SDL_Color blanc = {255, 255, 255, 255};
-        afficher_texte(renderer, font, "Générer Tenue", bouton_generer.x + 20, bouton_generer.y + 10, blanc);
+        afficher_texte(renderer, font, "Generer Tenue", bouton_generer.x + 20, bouton_generer.y + 10, blanc);
         afficher_texte(renderer, font, "Sauvegarder", bouton_sauvegarder.x + 20, bouton_sauvegarder.y + 10, blanc);
 
         SDL_RenderPresent(renderer);
@@ -191,4 +177,49 @@ int main() {
     // Nettoyage
     SDL_DestroyTexture(tenue_affichee.haut_icon);
    
+}
+SDL_Texture* charger_image(const char *fichier, SDL_Renderer *renderer) {
+    SDL_Surface *surface = IMG_Load(fichier);
+    if (!surface) {
+        fprintf(stderr, "Erreur lors du chargement de l'image : %s\n", IMG_GetError());
+        return NULL;
+    }
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    return texture;
+}
+
+void generate_tenue(Tenue *tenue) {
+    // Choix aléatoire des éléments de la tenue
+    const char *haut = hauts[rand() % 4];
+    const char *pantalon = pantalons[rand() % 4];
+    const char *chaussure = chaussures[rand() % 4];
+
+    // Calculer la longueur totale des chaînes
+    size_t total_length = strlen(haut) + strlen(pantalon) + strlen(chaussure) + 2; // +2 pour les virgules et espaces
+
+    // Vérifier si la taille totale ne dépasse pas MAX_LEN
+    if (total_length < MAX_LEN) {
+        snprintf(tenue->description, MAX_LEN, "%s, %s, %s", haut, pantalon, chaussure);
+    } else {
+        // Si la chaîne est trop longue, tronquer chaque élément pour respecter la taille MAX_LEN
+        snprintf(tenue->description, MAX_LEN, 
+                 "%s, %s, %s", 
+                 (strlen(haut) < MAX_LEN / 3 ? haut : "Trop long"), 
+                 (strlen(pantalon) < MAX_LEN / 3 ? pantalon : "Trop long"), 
+                 (strlen(chaussure) < MAX_LEN / 3 ? chaussure : "Trop long"));
+    }
+}
+
+
+void sauvegarder_tenues_csv(const char *fichier) {
+    FILE *fp = fopen(fichier, "w");
+    if (!fp) {
+        fprintf(stderr, "Erreur lors de l'ouverture du fichier : %s\n", fichier);
+        return;
+    }
+    for (int i = 0; i < nombre_tenues_sauvegardees; i++) {
+        fprintf(fp, "%s\n", tenues_sauvegardees[i].description);
+    }
+    fclose(fp);
 }
