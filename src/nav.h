@@ -5,6 +5,8 @@
 #include <SDL2/SDL_ttf.h>
 #include "barre_nav.h"
 
+#define NAV_BUTTON_WIDTH 120
+#define NAV_BUTTON_HEIGHT 50
 // Fonction pour dessiner la barre de navigation en bas de l'écran
 void render_navigation(SDL_Renderer *renderer, TTF_Font *font, int window_width)  ;
 // Fonction pour gérer les clics sur la barre de navigation

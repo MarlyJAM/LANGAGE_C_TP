@@ -46,7 +46,7 @@ void render_button(SDL_Renderer *renderer, TTF_Font *font, const char *label, SD
 SDL_Texture *import_image(SDL_Renderer *renderer, const char *filePath);
 
 // Fonction principale pour ajouter un vêtement
-void ajouter_vetement();
+void ajouter_vetement(AppState *currentState);
 
 #endif // AJOUTER_VETEMENT_H
 

@@ -3,11 +3,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "nav.h"
+#include "création.h"
+#include "calendar.h"
 #include "barre_nav.h"
 #include "render_text.h"  
 
-#define BUTTON_WIDTH 120
-#define BUTTON_HEIGHT 50
+
 
 // Couleurs utilisées pour les boutons
 SDL_Color white = {255, 255, 255, 255};
@@ -26,9 +27,9 @@ void render_navigation(SDL_Renderer *renderer, TTF_Font *font, int window_width)
     int button_margin = 20;
 
     // Définir les zones des boutons
-    SDL_Rect button1_rect = {nav_x + button_margin, button_y, BUTTON_WIDTH, BUTTON_HEIGHT};  // Calendrier
-    SDL_Rect button2_rect = {nav_x + nav_width / 2 - BUTTON_WIDTH / 2, button_y, BUTTON_WIDTH, BUTTON_HEIGHT};  // Tenues
-    SDL_Rect button3_rect = {nav_x + nav_width - BUTTON_WIDTH - button_margin, button_y, BUTTON_WIDTH, BUTTON_HEIGHT};  // Création
+    SDL_Rect button1_rect = {nav_x + button_margin, button_y, NAV_BUTTON_WIDTH, NAV_BUTTON_HEIGHT};  // Calendrier
+    SDL_Rect button2_rect = {nav_x + nav_width / 2 - NAV_BUTTON_WIDTH / 2, button_y, NAV_BUTTON_WIDTH, NAV_BUTTON_HEIGHT};  // Tenues
+    SDL_Rect button3_rect = {nav_x + nav_width - NAV_BUTTON_WIDTH - button_margin, button_y, NAV_BUTTON_WIDTH, NAV_BUTTON_HEIGHT};  // Création
 
     // Dessiner les boutons avec bordures
     SDL_SetRenderDrawColor(renderer, purple.r, purple.g, purple.b, purple.a);
@@ -68,8 +69,8 @@ void render_navigation(SDL_Renderer *renderer, TTF_Font *font, int window_width)
 // Fonction pour gérer les clics sur la barre de navigation
 void handle_navigation_click(int x, int y, int window_width, AppState *currentState) {
     // Vérifier si le clic est dans l'une des zones de bouton de la barre de navigation
-    int button_width = BUTTON_WIDTH;
-    int button_height = BUTTON_HEIGHT;
+    int button_width = NAV_BUTTON_WIDTH;
+    int button_height = NAV_BUTTON_HEIGHT;
     
     int nav_x = (window_width - 420) / 2;  // Centrer la barre de navigation
     int button_y = 700;  // Position des boutons de navigation
@@ -81,10 +82,13 @@ void handle_navigation_click(int x, int y, int window_width, AppState *currentSt
 
     if (is_point_in_rect(x, y, &button1)) {
         *currentState = STATE_CALENDAR;
+        printf("Bouton cliqué");
     } else if (is_point_in_rect(x, y, &button2)) {
         *currentState = STATE_TENUES;
+         printf("Bouton cliqué");
     } else if (is_point_in_rect(x, y, &button3)) {
         *currentState = STATE_CREATION;
+        printf("Bouton cliqué");
     }
 }
 // Vérifie si un clic est dans les limites du bouton
