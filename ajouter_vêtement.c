@@ -7,6 +7,7 @@
 #include "search_bar.h"
 #include "ajouter_vêtement.h"
 #include "tinyfiledialogs.h"
+#include <stdlib.h>
 
 // Fonction pour afficher un champ d'entrée avec son titre et son contenu
 void render_field(SDL_Renderer *renderer, TTF_Font *font, InputField *field) {
@@ -126,6 +127,28 @@ void render_image_field(SDL_Renderer *renderer, TTF_Font *font, SDL_Rect *rect, 
     }
 }
 
+// Fonction pour écrire les données dans un fichier CSV
+void enregistrer_vetement_csv(const char *fichier, Vetement *vetement, const char *image_path) {
+    FILE *file = fopen(fichier, "a"); // Mode "append" pour ajouter sans écraser les anciennes données
+    if (!file) {
+        fprintf(stderr, "Erreur d'ouverture du fichier CSV : %s\n", fichier);
+        return;
+    }
+    // Écrire les données dans le fichier (nom de l'image)
+    fprintf(file, "%s,%s,%s,%s,%s,%s,%s,%s\n",
+            vetement->nom,
+            vetement->categorie,
+            vetement->temperature,
+            vetement->motif,
+            vetement->type,
+            vetement->couleur,
+            vetement->saison,
+            image_path ? image_path : "Aucune image");
+
+    fclose(file);
+}
+
+
 
 void ajouter_vetement() {
     SDL_Color white = {255,255,255,255};
@@ -169,8 +192,8 @@ void ajouter_vetement() {
 
     InputField fields[7];
     const char *titles[] = {"Nom", "Categorie", "Temperature", "Motif", "Type", "Couleur", "Saison"};
-    SDL_Color defaultColor = {255, 0, 0, 255};
-    SDL_Color activeColor = {0, 255, 0, 255};
+    SDL_Color defaultColor = {200, 200, 0, 255};
+    SDL_Color activeColor = {200, 200, 0, 100};
 
     for (int i = 0; i < 7; i++) {
         fields[i].rect.x = (WINDOW_WTH - FIELD_WIDTH) / 2;
@@ -246,7 +269,8 @@ void ajouter_vetement() {
                 }
 
                 if (x >= buttonRect.x && x <= buttonRect.x + buttonRect.w &&
-                    y >= buttonRect.y && y <= buttonRect.y + buttonRect.h) {
+                y >= buttonRect.y && y <= buttonRect.y + buttonRect.h) {
+                    // Récupérer les données des champs
                     strcpy(newVetement.nom, fields[0].input);
                     strcpy(newVetement.categorie, fields[1].input);
                     strcpy(newVetement.temperature, fields[2].input);
@@ -255,15 +279,16 @@ void ajouter_vetement() {
                     strcpy(newVetement.couleur, fields[5].input);
                     strcpy(newVetement.saison, fields[6].input);
 
-                    printf("Nom: %s\n", newVetement.nom);
-                    printf("Categorie: %s\n", newVetement.categorie);
-                    printf("Temperature: %s\n", newVetement.temperature);
-                    printf("Motif: %s\n", newVetement.motif);
-                    printf("Type: %s\n", newVetement.type);
-                    printf("Couleur: %s\n", newVetement.couleur);
-                    printf("Saison: %s\n", newVetement.saison);
+                    // Ajouter le chemin de l'image si elle existe
+                    if (imageTexture) {
+                        snprintf(newVetement.image, sizeof(newVetement.image), "%s", tinyfd_getFilePath());
+                        } else {
+                            strcpy(newVetement.image, "");
+                        }
+
+                // Enregistrer les données dans le fichier CSV
+                enregistrer_vetement_csv("vetement.csv", &newVetement);
                 }
-            }
 
             if (event.type == SDL_TEXTINPUT) {
                 for (int i = 0; i < 7; i++) {
