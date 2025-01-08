@@ -17,9 +17,21 @@ void render_home(SDL_Renderer* renderer, TTF_Font* font, bool* change_to_welcome
     SDL_Color white = {255, 255, 255, 255};
     SDL_Color purple = {128, 0, 128, 255};
 
+    // Charger l'image en tant que texture
+    SDL_Texture* background = IMG_LoadTexture(renderer, "fond.jpeg");
+    if (!background) {
+        printf("Erreur lors du chargement de l'image : %s\n", IMG_GetError());
+        *running = false;
+        return;
+    }
+
     // Effacer l'écran avec une couleur de fond
     SDL_SetRenderDrawColor(renderer, 75, 0, 130, 255);
     SDL_RenderClear(renderer);
+
+    // Afficher l'image de fond
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, background, NULL, &window_rect);
 
     // Dessiner un rectangle arrondi pour le bouton "COMMENCER"
     SDL_Rect button_rect = { 140, 50, 200, 60 };
