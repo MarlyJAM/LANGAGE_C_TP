@@ -6,6 +6,6 @@
 
 
 // Fonction pour afficher la barre de recherche
-void renderSearchBar(SDL_Renderer *renderer, TTF_Font *font, int window_width, SDL_Color color);
+void renderSearchBar(SDL_Renderer *renderer, TTF_Font *font, int window_width, SDL_Color color, AppState *currentState);
 
 #endif // SEARCH_BAR_H

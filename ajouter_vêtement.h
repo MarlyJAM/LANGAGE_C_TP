@@ -1,52 +1,58 @@
-#ifndef AJOUTER_VETEMENT_H
-#define AJOUTER_VETEMENT_H
+#ifndef VETEMENT_MANAGER_H
+#define VETEMENT_MANAGER_H
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "tinyfiledialogs.h" 
+#include "accessoire.h"
 
-#define FIELD_WIDTH 320
-#define FIELD_HEIGHT 40
-#define FIELD_MARGIN 35
-#define BUTTON_WTH 160
-#define BUTTON_HEIGHT 50
-#define WINDOW_WTH 480
-#define WINDOW_HEIGHT 800
+#define MAX_PATH_LENGTH 200
+#define W_WIDTH 480
+#define W_HEIGHT 800
+#define F_WIDTH 300
+#define F_HEIGHT 40
+#define F_MARGIN 50 
+#define B_WIDTH 200
+#define B_HEIGHT 40
 
-// Structure pour un champ de saisie
+
 typedef struct {
-    SDL_Rect rect;         // Position et dimensions du champ
-    SDL_Color color;       // Couleur actuelle du champ
-    const char *title;     // Titre du champ
-    bool active;           // Indique si le champ est actif
-    char input[256];       // Texte saisi dans le champ
+    SDL_Rect rect;
+    char title[50];
+    char input[100];
+    SDL_Color color;
+    bool active;
 } InputField;
-
 // Structure représentant un vêtement
-typedef struct {
-    char nom[256];
-    char categorie[256];
-    char temperature[256];
-    char motif[256];
-    char type[256];
-    char couleur[256];
-    char saison[256];
+typedef struct Vetement {
+    char nom[50];
+    char categorie[50];
+    char temperature[20];
+    char motif[50];
+    char type[50];
+    char couleur[30];
+    char saison[20];
+    char image_path[MAX_PATH_LENGTH]; // Chemin complet de l'image
 } Vetement;
 
-void render_field(SDL_Renderer *renderer, TTF_Font *font, InputField *field);
-// Fonction pour afficher un champ d'importation d'image
-void render_image_field(SDL_Renderer *renderer, TTF_Font *font, SDL_Rect *imageRect, SDL_Texture *imageTexture);
-void render_button(SDL_Renderer *renderer, TTF_Font *font, const char *label, SDL_Rect *buttonRect);
+// Variables globales pour gérer les vêtements
+extern Vetement vetements[MAX_VETEMENTS];
 
-// Fonction pour importer une image et en retourner une texture
-SDL_Texture *import_image(SDL_Renderer *renderer, const char *filePath);
 
-// Fonction principale pour ajouter un vêtement
-void ajouter_vetement();
+// Fonction pour copier une image dans un dossier cible
+bool copy_image_to_folder(const char *src, const char *dest_folder, char *dest_path);
 
-#endif // AJOUTER_VETEMENT_H
+// Fonction pour ajouter un vêtement
+void ajouter_vetement(SDL_Renderer *renderer, TTF_Font *font);
+
+// Fonction pour afficher les vêtements dans la console
+//void afficher_vetements();
+
+#endif // VETEMENT_MANAGER_H
 

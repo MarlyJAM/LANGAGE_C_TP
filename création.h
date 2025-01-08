@@ -1,6 +1,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include "barre_nav.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -22,7 +23,7 @@ typedef struct {
     const char *text;
 } Button_c;
 
-void render_creation(SDL_Renderer *renderer, TTF_Font *font, bool *running, int window_width);
+void render_creation(SDL_Renderer *renderer, TTF_Font *font, bool *running, int window_width,AppState* currentState);
 
 void render_button_c(SDL_Renderer *renderer, TTF_Font *font, Button_c *button);
 

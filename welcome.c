@@ -6,7 +6,7 @@
 #include "search_bar.h" // Inclusion de la barre de recherche
 #include "render_text.h"  // Inclure la déclaration de render_text
 #include "calendar.h"
-#include "création.h" // Assurez-vous que "creation.h" est inclus correctement
+#include "création.h" //
 
 // Structure pour un bouton
 typedef struct {
@@ -39,7 +39,7 @@ void render_welcome(SDL_Renderer* renderer, TTF_Font* font, bool* running, int w
     SDL_RenderClear(renderer);
 
     // Dessiner la barre de recherche
-    renderSearchBar(renderer, font, window_width, whiteColor);
+    renderSearchBar(renderer, font, window_width, whiteColor,currentState);
 
     // Afficher le texte de bienvenue
     render_text(renderer, font, "Bienvenue Kassandre", 100, 100, black);

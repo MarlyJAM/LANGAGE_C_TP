@@ -9,9 +9,8 @@ typedef enum {
     STATE_CALENDAR,
     STATE_CREATION,
     STATE_TENUES,
-    STATE_QUIT  
+    STATE_QUIT 
 } AppState;
 
-extern AppState current_view;
 
 #endif // APP_STATE_H
