@@ -8,8 +8,9 @@ typedef enum {
     STATE_WELCOME,
     STATE_CALENDAR,
     STATE_CREATION,
+    STATE_VETEMENTS,
     STATE_TENUES,
-    STATE_QUIT  
+    STATE_QUIT 
 } AppState;
 
 

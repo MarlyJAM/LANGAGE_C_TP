@@ -47,10 +47,10 @@ void render_navigation(SDL_Renderer *renderer, TTF_Font *font, int window_width)
     int text_width, text_height;
 
     // Texte du bouton Calendrier
-    TTF_SizeText(font, "Calendrier", &text_width, &text_height);
+    TTF_SizeText(font, "Agenda", &text_width, &text_height);
     int text_x1 = button1_rect.x + (button1_rect.w - text_width) / 2;
     int text_y1 = button1_rect.y + (button1_rect.h - text_height) / 2;
-    render_text(renderer, font, "Calendrier", text_x1, text_y1, white);
+    render_text(renderer, font, "Agenda", text_x1, text_y1, white);
 
     // Texte du bouton Tenues
     TTF_SizeText(font, "Tenues", &text_width, &text_height);

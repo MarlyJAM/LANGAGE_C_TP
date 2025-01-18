@@ -7,6 +7,7 @@
 #include "welcome.h"
 #include "calendar.h"
 #include "création.h"
+#include "vetements.h"
 
 // Déclaration de l'état actuel de l'application
 AppState currentState = STATE_HOME;
@@ -83,6 +84,13 @@ int main(int argc, char* argv[]) {
                 render_navigation(renderer, font, window_width);  // Affichage de la barre de navigation
                 render_creation(renderer, font, &running, window_width,&currentState);
             } 
+
+        else if (currentState ==  STATE_VETEMENTS)
+        {
+           
+            afficher_vetements(renderer, font, &running, &currentState);
+        }
+        
             
         /*else if (currentState == STATE_TENUES) {
                 render_tenues(renderer, font, &running); // Assurez-vous d'implémenter render_tenues si nécessaire

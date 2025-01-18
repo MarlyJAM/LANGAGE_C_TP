@@ -6,7 +6,12 @@
 #include "créatenue.h"
 #include <time.h>
 #include <string.h>
+#include "crea_bar.h"
+#include "ajouter_vêtement.h"
 
+
+// Déclarer une texture pour le fond
+SDL_Texture *background_texture = NULL;
 
 // Initialisation SDL
 int init(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font) {
@@ -45,7 +50,8 @@ int init(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font) {
         SDL_DestroyWindow(*window);
         return 0;
     }
-
+    // Charger l'image de fond
+    background_texture = charger_image("background_welcome.png", *renderer);  // Remplace "background.png" par ton fichier de fond
     return 1;
 }
 
@@ -82,26 +88,30 @@ void afficher_texte(SDL_Renderer *renderer, TTF_Font *font, const char *texte, i
 // Fonction pour afficher une tenue avec icônes
 void afficher_tenue(SDL_Renderer *renderer, TTF_Font *font, Tenue *tenue) {
     SDL_Color noir = {0, 0, 0, 255};
-    int x_pos = 50;
+    int x_pos = 150;
+    int l_icon = 175;
+
 
     // Affichage de l'icône du haut et du texte
-    SDL_Rect dst_haut = {x_pos, 100, 50, 50}; // Taille et position de l'icône
+    SDL_Rect dst_haut = {x_pos, 100, l_icon, l_icon}; // Taille et position de l'icône
     SDL_RenderCopy(renderer, tenue->haut_icon, NULL, &dst_haut);
-    afficher_texte(renderer, font, tenue->haut, x_pos + 60, 100, noir);
+    //afficher_texte(renderer, font, tenue->haut, x_pos + 60, 100, noir);
 
     // Affichage de l'icône du pantalon et du texte
-    SDL_Rect dst_pantalon = {x_pos, 150, 50, 50}; // Taille et position de l'icône
+    SDL_Rect dst_pantalon = {x_pos, 275 , l_icon, l_icon}; // Taille et position de l'icône
     SDL_RenderCopy(renderer, tenue->pantalon_icon, NULL, &dst_pantalon);
-    afficher_texte(renderer, font, tenue->pantalon, x_pos + 60, 150, noir);
+    //afficher_texte(renderer, font, tenue->pantalon, x_pos + 60, 150, noir);
 
     // Affichage de l'icône de la chaussure et du texte
-    SDL_Rect dst_chaussure = {x_pos, 200, 50, 50}; // Taille et position de l'icône
+    SDL_Rect dst_chaussure = {x_pos, 450, l_icon, l_icon}; // Taille et position de l'icône
     SDL_RenderCopy(renderer, tenue->chaussure_icon, NULL, &dst_chaussure);
-    afficher_texte(renderer, font, tenue->chaussure, x_pos + 60, 200, noir);
+    //afficher_texte(renderer, font, tenue->chaussure, x_pos + 60, 200, noir);
 }
+
 
 // Fonction principale
 int render_createnue() {
+    SDL_Color white = {255, 255, 255, 255};
     srand(time(NULL));
 
     SDL_Window *window = NULL;
@@ -119,13 +129,21 @@ int render_createnue() {
     SDL_Rect bouton_generer = {WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2, WINDOW_HEIGHT - 120, BUTTON_WIDTH, BUTTON_HEIGHT};
     SDL_Rect bouton_sauvegarder = {WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2, WINDOW_HEIGHT - 60, BUTTON_WIDTH, BUTTON_HEIGHT};
 
+    // Initialisation du générateur de nombres aléatoires
+    srand(time(NULL));
+
     // Charger les icônes
+    const char* icone_a_charger = NULL;
+    const char* icone_a_charger1 = NULL;
+    const char* icone_a_charger2 = NULL;
+    //tenue_affichee.haut_icon = charger_image(icone_a_charger, renderer);
     tenue_affichee.haut_icon = charger_image("icon_tshirt.png", renderer);
     tenue_affichee.pantalon_icon = charger_image("icon_jean.png", renderer);
     tenue_affichee.chaussure_icon = charger_image("icon_basket.png", renderer);
 
     // Initialiser la première tenue affichée
     generate_tenue(&tenue_affichee);
+
 
     while (!quit) {
         while (SDL_PollEvent(&e)) {
@@ -138,7 +156,74 @@ int render_createnue() {
                 // Gestion du clic sur le bouton "Générer"
                 if (x >= bouton_generer.x && x <= bouton_generer.x + BUTTON_WIDTH &&
                     y >= bouton_generer.y && y <= bouton_generer.y + BUTTON_HEIGHT) {
+                    printf("bouton générer est cliqué");
                     generate_tenue(&tenue_affichee);
+
+
+
+                    // Sélection aléatoire d'un haut
+                    int index_aleatoire = rand() % MAX_VETEMENTS;
+                    int index_aleatoire1 = rand() % MAX_VETEMENTS;
+                    int index_aleatoire2 = rand() % MAX_VETEMENTS;
+                    const char* icone_a_charger = hauts[index_aleatoire];
+                    const char* icone_a_charger1 = pantalons[index_aleatoire1];
+                    const char* icone_a_charger2 = chaussures[index_aleatoire2];
+
+
+                    printf("Index aléatoire : %d\n", index_aleatoire);
+                    printf("Haut choisi : %s\n", hauts[index_aleatoire]);
+
+                    // Assignation du nom du haut à la structure
+                    snprintf(tenue_affichee.haut, MAX_LEN, "%s", icone_a_charger);
+                    printf("Haut sélectionné : %s\n", tenue_affichee.haut);
+
+                    // Assignation du nom du pantalon à la structure
+                    snprintf(tenue_affichee.pantalon, MAX_LEN, "%s", icone_a_charger1);
+                    printf("Pantalon sélectionné : %s\n", tenue_affichee.pantalon);
+
+                    // Assignation du nom des chaussures à la structure
+                    snprintf(tenue_affichee.chaussure, MAX_LEN, "%s", icone_a_charger2);
+                    printf("Chaussure sélectionné : %s\n", tenue_affichee.chaussure);
+
+                    // Chargement de l'icône du haut
+                    if (tenue_affichee.haut_icon) {
+                        SDL_DestroyTexture(tenue_affichee.haut_icon); // Libérer la texture précédente
+                    }
+
+                    //printf("Le fichier à charger est : %s\n", icone_a_charger);
+
+                    tenue_affichee.haut_icon = charger_image(icone_a_charger, renderer);
+                    if (!tenue_affichee.haut_icon) {
+                        printf("Erreur lors du chargement de l'image : %s\n", icone_a_charger);
+                    }
+
+                    // Chargement de l'icône du milieu
+                    if (tenue_affichee.pantalon_icon) {
+                        SDL_DestroyTexture(tenue_affichee.pantalon_icon); // Libérer la texture précédente
+                    }
+
+                    //printf("Le fichier à charger est : %s\n", icone_a_charger1);
+
+                    tenue_affichee.pantalon_icon = charger_image(icone_a_charger1, renderer);
+                    if (!tenue_affichee.pantalon_icon) {
+                        printf("Erreur lors du chargement de l'image : %s\n", icone_a_charger1);
+                    }
+
+                      // Chargement de l'icône du bas
+                    if (tenue_affichee.chaussure_icon) {
+                        SDL_DestroyTexture(tenue_affichee.chaussure_icon); // Libérer la texture précédente
+                    }
+
+                    //printf("Le fichier à charger est : %s\n", icone_a_charger2);
+
+                    tenue_affichee.chaussure_icon = charger_image(icone_a_charger2, renderer);
+                    if (!tenue_affichee.chaussure_icon) {
+                        printf("Erreur lors du chargement de l'image : %s\n", icone_a_charger2);
+                    }
+
+                    
+
+
                 }
 
                 // Gestion du clic sur le bouton "Sauvegarder"
@@ -148,18 +233,34 @@ int render_createnue() {
                         tenues_sauvegardees[nombre_tenues_sauvegardees++] = tenue_affichee;
                     }
                 }
+                // // Gestion de la barre de recherche pour revenir à l'accueil
+                // if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+                //     int x = e.button.x;
+                //     int y = e.button.y;
+
+                //     // Vérifiez si le clic est dans la zone de la barre de recherche
+                //     if (x >= 0 && x <= WINDOW_WIDTH && y >= 0 && y <= 50) { // Barre de recherche
+                //         printf("Retour à l'accueil\n");
+                //         ajouter_vetement(renderer,font);
+                        
+                //     }
+                // }
             }
         }
 
         // Dessiner l'interface
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
-
+        // Afficher l'image de fond
+        SDL_Rect background_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        SDL_RenderCopy(renderer, background_texture, NULL, &background_rect);
+        // Affichage de la barre de recherche
+        render_crea_bar(renderer, font, WINDOW_WIDTH, white);
         // Afficher la tenue
         afficher_tenue(renderer, font, &tenue_affichee);
 
         // Dessiner les boutons
-        SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 200, 0, 255, 255);
         SDL_RenderFillRect(renderer, &bouton_generer);
         SDL_RenderFillRect(renderer, &bouton_sauvegarder);
 
@@ -176,10 +277,12 @@ int render_createnue() {
 
     // Nettoyage
     SDL_DestroyTexture(tenue_affichee.haut_icon);
+    SDL_DestroyTexture(background_texture); // Libère la texture du fond
    
 }
 SDL_Texture* charger_image(const char *fichier, SDL_Renderer *renderer) {
     SDL_Surface *surface = IMG_Load(fichier);
+    printf("Tentative de chargement de l'image : %s\n", fichier);
     if (!surface) {
         fprintf(stderr, "Erreur lors du chargement de l'image : %s\n", IMG_GetError());
         return NULL;
