@@ -7,6 +7,7 @@
 #include "welcome.h"
 #include "calendar.h"
 #include "création.h"
+#include "vetements.h"
 
 // Déclaration de l'état actuel de l'application
 AppState currentState = STATE_HOME;
@@ -26,7 +27,7 @@ int main(int argc, char* argv[]) {
         printf("Erreur TTF_Init : %s\n", TTF_GetError());
         return 1;
     }
-
+    SDL_Event event;
     // Création de la fenêtre
     SDL_Window* window = SDL_CreateWindow("My Dressing", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, SDL_WINDOW_SHOWN);
     if (window == NULL) {
@@ -71,19 +72,29 @@ int main(int argc, char* argv[]) {
         } else if (currentState == STATE_WELCOME) {
             // Gérer l'affichage de la page de bienvenue (welcome)
             render_welcome(renderer, font, &running, window_width, window_height, &currentState);  // Ajouter currentState ici
-        } else if (currentState == STATE_CALENDAR || currentState == STATE_CREATION || currentState == STATE_TENUES) {
+        } /*else if (currentState == STATE_CALENDAR || currentState == STATE_CREATION || currentState == STATE_TENUES) {*/
             // Afficher la barre de navigation uniquement dans ces états
-            render_navigation(renderer, font, window_width);  // Affichage de la barre de navigation
-
+            
             // Afficher l'écran correspondant à l'état actuel
-            if (currentState == STATE_CALENDAR) {
+        else if (currentState == STATE_CALENDAR) {
+                render_navigation(renderer, font, window_width);  // Affichage de la barre de navigation
                 render_calendar(renderer, font, &running, window_width, window_height, &currentState);
-            } else if (currentState == STATE_CREATION) {
-                render_creation(renderer, font, &running, window_width);
-            } /*else if (currentState == STATE_TENUES) {
+            } 
+        else if (currentState == STATE_CREATION) {
+                render_navigation(renderer, font, window_width);  // Affichage de la barre de navigation
+                render_creation(renderer, font, &running, window_width,&currentState);
+            } 
+
+        else if (currentState ==  STATE_VETEMENTS)
+        {
+           
+            afficher_vetements(renderer, font, &running, &currentState);
+        }
+        
+            
+        /*else if (currentState == STATE_TENUES) {
                 render_tenues(renderer, font, &running); // Assurez-vous d'implémenter render_tenues si nécessaire
             }*/
-        }
     }
 
 

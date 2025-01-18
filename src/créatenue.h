@@ -8,7 +8,7 @@
 #define WINDOW_WIDTH 480
 #define WINDOW_HEIGHT 800
 #ifndef BUTTON_WIDTH
-#define BUTTON_WIDTH 200
+#define BUTTON_WIDTH 210
 #endif
 #ifndef BUTTON_HEIGHT 
 #define BUTTON_HEIGHT 50

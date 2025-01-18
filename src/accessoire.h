@@ -1,7 +1,7 @@
 #ifndef ACCESSOIRE_H
 #define ACCESSOIRE_H
 
-#define MAX_VETEMENTS 50
+#define MAX_VETEMENTS 4
 #define MAX_LEN 1024
 #define MAX_TENUES 100
 
